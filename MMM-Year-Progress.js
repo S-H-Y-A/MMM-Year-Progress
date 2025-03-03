@@ -27,10 +27,7 @@ Module.register("MMM-Year-Progress", {
 		return this.data.header;
 	},
 	// Override dom generator.
-	getDom: function() {
-
-
-
+	getDom: function () {
 		let wrapper = document.createElement("div");
 		wrapper.className = "small progress-bar"
 
@@ -40,6 +37,7 @@ Module.register("MMM-Year-Progress", {
 		let yearRow = document.createElement("tr");
 		let monthRow = document.createElement("tr");
 		let weekRow = document.createElement("tr");
+		let dayRow = document.createElement("tr");
 
 		let yearNumberCell = document.createElement("td");
 		yearNumberCell.className = "data numbers year";
@@ -62,22 +60,32 @@ Module.register("MMM-Year-Progress", {
 		let weekPercentCell = document.createElement("td");
 		weekPercentCell.className = "data percent week";
 
+		let dayNumberCell = document.createElement("td");
+		dayNumberCell.className = "data numbers day";
+		let dayBarCell = document.createElement("td");
+		dayBarCell.className = "data bar day";
+		let dayPercentCell = document.createElement("td");
+		dayPercentCell.className = "data percent day";
+
 		// Year
 		let numWrapper = document.createElement("span");
-		numWrapper.className="numbers"
+		numWrapper.className = "numbers"
 		let barWrapper = document.createElement("span");
 		barWrapper.className = "bar"
 		let percentWrapper = document.createElement("span");
 		percentWrapper.className = "percent"
-		date = new Date()
-		const initialDate = new Date(date.getFullYear(), 0, 1)
-		const isLeapYear = year => {
-			return year % 400 === 0 || (year % 100 !== 0 && year % 4 === 0)
-		}
-		const dayYear = moment().dayOfYear()
-		const daysInYear = isLeapYear(date.getFullYear()) ? 366 : 365
-		const percentYear = Math.floor((dayYear / daysInYear) * 100)
+
+		const now = moment();
+
+
+		const daysInYear = now.isLeapYear() ? 366 : 365;
+		const dayYear = now.dayOfYear();
+
+		const percentYear = ((now.unix() - moment("1/1", "MM/dd").unix()) / (86400 * daysInYear) * 100).toFixed(5);
 		const yearBar = this.progressBar(percentYear)
+
+
+
 		yearNumberCell.innerHTML = dayYear + "/" + daysInYear
 		yearBarCell.innerHTML = yearBar
 		yearPercentCell.innerHTML = percentYear + "%"
@@ -89,9 +97,9 @@ Module.register("MMM-Year-Progress", {
 		dataTable.appendChild(yearRow);
 
 		// Month
-		const daysInMonth = new Date(moment().year(), moment().month() + 1, 0).getDate();
-		const dayMonth = moment().date();
-		const percentMonth = Math.floor(dayMonth/daysInMonth*100);
+		const daysInMonth = moment().endOf("month").date();
+		const dayMonth = now.date();
+		const percentMonth = ((now.unix() - moment(1, "DD").unix()) / (86400 * daysInMonth) * 100).toFixed(4);
 		percentWrapper = percentMonth + "%"
 		const monthBar = this.progressBar(percentMonth)
 
@@ -106,12 +114,12 @@ Module.register("MMM-Year-Progress", {
 		dataTable.appendChild(monthRow);
 
 		// Week
-		const weekDay = moment().isoWeekday()
-		const percentWeek = Math.floor(weekDay/7*100);
+		const weekDay = now.day();
+		const percentWeek = ((now.unix() - moment(0, "HH").startOf("week").unix()) / (86400 * 7) * 100).toFixed(4);
 		percentWrapper = percentWeek + "%"
 		const weekBar = this.progressBar(percentWeek)
 
-		weekNumberCell.innerHTML = weekDay + "/" + 7
+		weekNumberCell.innerHTML = weekDay + "/" + 6
 		weekBarCell.innerHTML = weekBar
 		weekPercentCell.innerHTML = percentWeek + "%"
 
@@ -120,6 +128,22 @@ Module.register("MMM-Year-Progress", {
 		weekRow.append(weekPercentCell)
 
 		dataTable.appendChild(weekRow);
+
+		// Day
+		const hour = now.hour();
+		const percentDay = ((now.unix() - moment(0, "HH").unix()) / (86400) * 100).toFixed(4);
+		percentWrapper = percentDay + "%"
+		const dayBar = this.progressBar(percentDay)
+
+		dayNumberCell.innerHTML = hour + "/" + 24
+		dayBarCell.innerHTML = dayBar
+		dayPercentCell.innerHTML = percentDay + "%"
+
+		dayRow.append(dayNumberCell)
+		dayRow.append(dayBarCell)
+		dayRow.append(dayPercentCell)
+
+		dataTable.appendChild(dayRow);
 
 		wrapper.appendChild(dataTable);
 
