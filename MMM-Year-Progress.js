@@ -10,10 +10,26 @@ Module.register("MMM-Year-Progress", {
 		debug: false
 	},
 	start: function() {
-		var self = this;
-		setInterval(function() {
-			self.updateDom(); // no speed defined, so it updates instantly.
-		}, this.config.updateInterval);
+		Log.info(`Starting module: ${this.name}`);
+
+		// Calculate how many ms should pass until next update depending on if seconds is displayed or not
+		const delayCalculator = () => {
+			const EXTRA_DELAY = 50; // Deliberate imperceptible delay to prevent off-by-one timekeeping errors
+			return 1000 - moment().milliseconds() + EXTRA_DELAY;
+		};
+
+		// A recursive timeout function instead of interval to avoid drifting
+		const notificationTimer = () => {
+			this.updateDom();
+			setTimeout(notificationTimer, delayCalculator());
+		};
+
+		// Set the initial timeout with the amount of seconds elapsed as
+		// reducedSeconds, so it will trigger when the minute changes
+		setTimeout(notificationTimer, delayCalculator());
+
+		// Set locale.
+		moment.locale(config.language);
 	},
 	getStyles: function() {
 		return ["MMM-Year-Progress.css"];
